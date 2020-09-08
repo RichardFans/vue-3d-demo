@@ -1,6 +1,19 @@
-# vue-3d-demo
+# vue-3d-demo(Dermatome)
+
+## Preview
+
+### Edit Dermatome
+
+![Edit Dermatome](public/img/1.png)
+
+### Stroke On Body
+
+![2](public/img/2.png)
+
+
 
 ## Project setup
+
 ```
 npm install
 ```
@@ -22,3 +35,4 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
