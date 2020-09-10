@@ -333,6 +333,7 @@
       },
       saveDermatome () {
         this.dermatome.data = this.$refs.humanView.exportDermatome()
+        console.log('this.dermatome.data', this.dermatome.data)
         localStorage.setItem('dermatome2', JSON.stringify(this.dermatome))
       },
       exportDermatome () {

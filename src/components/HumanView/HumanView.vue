@@ -60,7 +60,7 @@
         this.bodyCanvasTexture.restroke()
       },
       refresh (loadDermatome) {
-        console.log('loadDermatome', loadDermatome);
+        // console.log('loadDermatome', loadDermatome);
         this.bodyCanvasTexture.setDermatome(this.dermatome)
         this.bodyCanvasTexture.refresh(loadDermatome)
       },

@@ -1,5 +1,6 @@
 import {ConnectedComponent} from "../../utils/gl/ConnectedComponent"
 import {MarkerBrush} from "./MarkerBrush"
+import {deltaE} from "../../utils/gl/gl"
 // import {PointBrush} from "./PointBrush"
 // import {PointLineBrush} from "./PointLineBrush"
 // import {PointCurveBrush} from "./PointCurveBrush"
@@ -16,7 +17,9 @@ const DEFAULT_MARK_SIZE = 2
 const KEY_POINT_COLOR = 'rgb(241,237,6)'
 const KEY_POINT_SIZE = 3
 const KEY_POINT_RANGE = 6
-
+// const DEFAULT_MARK_COLOR1= 'rgb(255,127,80)'
+// const DEFAULT_MARK_COLOR2= 'rgb(255,119,255)'
+// const DEFAULT_MARK_COLOR3= 'rgb(255,121,217)'
 class SkinTexture {
   canvas
   dCanvas   // 用于绘制 dermatome
@@ -174,6 +177,7 @@ class SkinTexture {
     let ctx = this.dContext
     let w = this.dCanvas.width, h = this.dCanvas.height
     let originData = ctx.getImageData(0, 0, w, h).data
+    // console.log('originData', originData)
     let data = {}
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
@@ -188,6 +192,17 @@ class SkinTexture {
               return true
             }
           })
+          if (!data[y] || !data[y][x]) { // 如果没有找到相同的颜色，则可能是遇到了抗锯齿边缘，那么寻找相似度最高的颜色
+            if (!data[y]) data[y] = {}
+            this.dermatome.paths.reduce((minDeltaE, path) => {
+              const c = path.color
+              const curDeltaE = deltaE(c.r, c.g, c.b, r, g, b)
+              if (curDeltaE < minDeltaE) {
+                data[y][x] = c.a
+              }
+              return Math.min(curDeltaE, minDeltaE)
+            }, 100)
+          }
         }
       }
     }
@@ -226,6 +241,7 @@ class SkinTexture {
 
   strokeStart (u0, v0) {
     let {x, y} = this.getAbsCoordinator(u0, v0)
+    // console.log('x, y', x, y)
     let ctx = this.strokeDisabled ? this.dContext : this.sContext
     if (this.background) this.context.drawImage(this.background, 0, 0)
     this.brush.strokeStart(ctx, x, y)
@@ -241,6 +257,7 @@ class SkinTexture {
 
   stroke (u0, v0) {
     let {x, y} = this.getAbsCoordinator(u0, v0)
+
     let ctx = this.strokeDisabled ? this.dContext : this.sContext
     if (this.background) this.context.drawImage(this.background, 0, 0)
     this.brush.stroke(ctx, x, y)
