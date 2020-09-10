@@ -4,7 +4,7 @@
       <HumanView
           ref="humanView"
           class="sketch-on-model__view" v-bind:cam-pos.sync="camPos"
-          @point-pick="onPickPoint" :stroke-disabled="strokeDisabled"
+          @point-pick="onPickKeyPoint" :stroke-disabled="strokeDisabled"
           :dermatome-visible="dermatomeVisible"
           :symmetric="symmetric"
           :current-path-index="dermatomeTab"
@@ -127,8 +127,8 @@
                                  :color="path.keyPair?'red':''">
                             <v-icon small>mdi-axis</v-icon>
                           </v-btn>
-                          <v-btn small icon @click="pickPoint(path.key)" title="坐标拾取"
-                                 :color="waitPickPoint===path.key?'red':''">
+                          <v-btn small icon @click="pickKeyPoint(path)" title="坐标拾取"
+                                 :color="waitPickKeyPointPath===path?'red':''">
                             <v-icon small>mdi-eyedropper-variant</v-icon>
                           </v-btn>
                         </v-col>
@@ -266,7 +266,7 @@
       eraseActive: false,
       dermatomeTab: 0,
       dermatome: DERMATOME,
-      waitPickPoint: null,
+      waitPickKeyPointPath: null,
       mode: 'dermatome',
       symmetric: true,
       modes: ['stroke', 'dermatome'],
@@ -311,7 +311,6 @@
     },
     methods: {
       onKeyPairChange (path) {
-        // path.keyPair = path.keyPair ? false : this.$refs.humanView.getBodyCanvasSymmetricPoint(path.key)
         this.$set(path, 'keyPair', path.keyPair ? false : this.$refs.humanView.getBodyCanvasSymmetricPoint(path.key))
         this.refresh()
       },
@@ -320,7 +319,7 @@
       },
       toggleEraseActive () {
         this.eraseActive = !this.eraseActive
-        this.waitPickPoint = null
+        this.waitPickKeyPointPath = null
       },
       analysisStrokeArea () {
         this.analysisResult = this.$refs.humanView.analysisStrokeArea()
@@ -330,6 +329,13 @@
       },
       refresh (loadDermatome) {
         this.$refs.humanView.refresh(loadDermatome)
+        if (this.strokeDisabled) {
+          if (this.waitPickKeyPointPath) {
+            let path = this.waitPickKeyPointPath
+            this.$refs.humanView.mark(path.key.x, path.key.y)
+            if (path.keyPair) this.$refs.humanView.mark(path.keyPair.x, path.keyPair.y)
+          }
+        }
       },
       saveDermatome () {
         this.dermatome.data = this.$refs.humanView.exportDermatome()
@@ -392,7 +398,7 @@
         })
         if (res === 'Yes') {
           this.dermatome.paths.splice(i, 1)
-          this.waitPickPoint = null
+          this.waitPickKeyPointPath = null
           this.refresh(true)
         }
       },
@@ -403,29 +409,29 @@
           this.msg('已拷贝到剪贴板')
         })
       },
-      pickPoint (point) {
-        if (this.waitPickPoint !== point) {
-          this.waitPickPoint = point
+      pickKeyPoint (path) {
+        if (this.waitPickKeyPointPath !== path) {
+          this.waitPickKeyPointPath = path
           this.eraseActive = false
           this.refresh()
-          this.$refs.humanView.mark(point.x, point.y)
         } else {
-          this.waitPickPoint = null
+          this.waitPickKeyPointPath = null
           this.refresh()
         }
       },
-      onPickPoint ({x, y}) {
+      onPickKeyPoint ({x, y}) {
         if (!this.strokeDisabled) return
-        if (this.waitPickPoint &&
-          (this.waitPickPoint.x !== x || this.waitPickPoint.y !== y)) {
-          this.waitPickPoint.x = x
-          this.waitPickPoint.y = y
+        let path = this.waitPickKeyPointPath
+        if (path &&
+          (path.key.x !== x || path.key.y !== y)) {
+          path.key.x = x
+          path.key.y = y
+          if (path.keyPair) this.$set(path, 'keyPair', this.$refs.humanView.getBodyCanvasSymmetricPoint(path.key))
           this.refresh()
-          this.$refs.humanView.mark(x, y)
         }
       },
       onPathTabChange () {
-        this.waitPickPoint = null
+        // this.waitPickKeyPointPath = null
         this.refresh()
       },
       msg (text) {

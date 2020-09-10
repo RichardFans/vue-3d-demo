@@ -48,7 +48,7 @@
     }),
     methods: {
       getBodyCanvasSymmetricPoint ({x, y}) {
-        return {x: this.bodyCanvasTexture.getSymmetricX(x), y}
+        return {x: this.bodyCanvasTexture.getSymmetricX(x, y), y}
       },
       exportDermatome () {
         return this.bodyCanvasTexture.exportDermatome()
